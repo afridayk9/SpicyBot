@@ -83,6 +83,38 @@ def determine_winner(player_hand, dealer_hand):
     else:
         return 'dealer'
 
+#Douglas Perry
+
+async def scramble(word):
+    return ''.join(random.sample(word, len(word)))
+
+@client.command()
+async def scramblegame(ctx):
+    with open("randomwords.txt", "r", encoding="utf-8") as file:
+       word = file.readlines()
+    
+    random_word = random.choice(word).strip()
+    scrambled_word = await scramble(random_word)
+    embed = discord.Embed(title="Guess the Word!", description = f"Scrambled word: {scrambled_word}")
+    embed.set_footer(text="Time Limit: 10 Seconds")
+    await ctx.send (embed=embed)
+
+    try:
+        def check(msg):
+            return msg.author == ctx.author and msg.channel == ctx.channel
+
+        guess = await client.wait_for("message", timeout=10.0, check=check)
+        guess = guess.content.lower()
+
+        if guess == random_word.lower():
+            await ctx.send("Correct! You guessed the word in time.")
+        else:
+            await ctx.send("Wrong Guess! The word was: " + random_word)
+
+    except asyncio.TimeoutError:
+        await ctx.send("Time's up! You didn't guess the word in time. The word was: " + random_word)
+
+
 with open("token.txt") as file:
     token = file.read()
 
