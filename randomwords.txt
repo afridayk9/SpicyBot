@@ -1,152 +1,69 @@
 [
-    "Elephant",
-    "Sunshine",
-    "Enigma",
-    "Harmony",
-    "Cascade",
-    "Labyrinth",
-    "Whimsical",
-    "Nebula",
-    "Radiant",
-    "Serenity",
-    "Mystic",
-    "Tranquil",
-    "Quasar",
-    "Petrichor",
-    "Celestial",
-    "Ethereal",
-    "Jubilant",
-    "Mellifluous",
-    "Resplendent",
-    "Blissful",
-    "Symphony",
-    "Zephyr",
-    "Effervescent",
-    "Velvet",
-    "Luminous",
-    "Solitude",
-    "Ineffable",
-    "Ephemeral",
-    "Amethyst",
-    "Serendipity",
-    "Enchanting",
-    "Kaleidoscope",
-    "Tranquility",
-    "Nebulous",
-    "Synchronicity",
-    "Whimsy",
-    "Incandescent",
-    "Bubbles",
-    "Surreal",
-    "Halcyon",
-    "Luminescent",
-    "Enchanted",
-    "Resonance",
-    "Lustrous",
-    "Ponder",
-    "Splendor",
-    "Harmony",
-    "Celestial",
-    "Nebula",
-    "Resplendent",
-    "Zephyr",
-    "Whimsical",
-    "Mystic",
-    "Mellifluous",
-    "Radiant",
-    "Symphony",
-    "Enigma",
-    "Serenity",
-    "Quasar",
-    "Resonance",
-    "Nebulous",
-    "Synchronicity",
-    "Velvet",
-    "Whimsy",
-    "Incandescent",
-    "Bubbles",
-    "Surreal",
-    "Halcyon",
-    "Luminescent",
-    "Enchanted",
-    "Mellifluous",
-    "Serendipity",
-    "Lustrous",
-    "Symphony",
-    "Ponder",
-    "Splendor",
-    "Nebula",
-    "Illuminate",
-    "Velvet",
-    "Purity",
-    "Enigma",
-    "Serene",
-    "Zephyr",
-    "Quasar",
-    "Solitude",
-    "Ephemeral",
-    "Luminous",
-    "Tranquility",
-    "Radiant",
-    "Nebulous",
-    "Mellifluous",
-    "Euphoria",
-    "Effervescent",
-    "Ineffable",
-    "Velvet",
-    "Symphony",
-    "Enchanting",
-    "Kaleidoscope",
-    "Surreal",
-    "Blissful",
-    "Luminescent",
-    "Harmony",
-    "Celestial",
-    "Ethereal",
-    "Nebula",
-    "Resplendent",
-    "Zephyr",
-    "Whimsical",
-    "Mystic",
-    "Mellifluous",
-    "Radiant",
-    "Symphony",
-    "Enigma",
-    "Serenity",
-    "Quasar",
-    "Resonance",
-    "Nebulous",
-    "Synchronicity",
-    "Velvet",
-    "Whimsy",
-    "Incandescent",
-    "Bubbles",
-    "Surreal",
-    "Halcyon",
-    "Luminescent",
-    "Enchanted",
-    "Mellifluous",
-    "Serendipity",
-    "Lustrous",
-    "Symphony",
-    "Ponder",
-    "Splendor",
-    "Nebula",
-    "Illuminate",
-    "Velvet",
-    "Purity",
-    "Enigma",
-    "Serene",
-    "Zephyr",
-    "Quasar",
-    "Solitude",
-    "Ephemeral",
-    "Luminous",
-    "Tranquility",
-    "Radiant",
-    "Nebulous",
-    "Mellifluous",
-    "Euphoria",
-    "Effervescent",
-    "Ineffable"
+Happy
+Sunny
+Secret
+Peace
+Water
+Maze
+Funny
+Cloud
+Bright
+Calm
+Quiet
+Star
+Rain
+Sky
+Light
+Excited
+Beautiful
+Shine
+Joyful
+Music
+Wind
+Sparkling
+Soft
+Bright
+Alone
+Unspeakable
+Temporary
+Gemstone
+Lucky
+Charming
+Rainbow
+Peacefulness
+Fuzzy
+Hot
+Bubbles
+Strange
+Calm
+Bright
+Echo
+Shiny
+Magical
+Finding
+Think
+Magnificent
+Stardust
+Shining
+Gentle
+Funny
+Beautiful
+Think
+Magnificent
+Light
+Soft
+Pure
+Secret
+Peaceful
+Gentle
+Star
+Light
+Peacefulness
+Bright
+Fuzzy
+Sparkling
+Joyful
+Soft
+Beautiful
+Finding
 ]
