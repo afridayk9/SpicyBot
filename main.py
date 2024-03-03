@@ -47,11 +47,16 @@ async def blackjack(ctx, bet: int):
 
     while sum(player_hand) < 21:
         response = await get_player_response(ctx, "Do you want to hit or stand? Type `hit` or `stand`.")
-        if response.lower() == 'hit':
+        if response == 'timeout':
+            await ctx.send("Time's up! You didn't make a decision in time.")
+            return
+        elif response == 'hit':
             player_hand.append(draw_card())
             await ctx.send(f'Your hand: {", ".join(map(str, player_hand))}\nDealer\'s hand: {dealer_hand[0]}, ?')
-        elif response.lower() == 'stand':
+        elif response == 'stand':
             break
+        else:
+            await ctx.send("Invalid input. Please type `hit` or `stand`.")
 
     while sum(dealer_hand) < 17:
         dealer_hand.append(draw_card())
@@ -65,8 +70,16 @@ def draw_card():
     return random.randint(1, 11)
 
 async def get_player_response(ctx, message):
+    def check(m):
+        return m.author == ctx.author and m.channel == ctx.channel and m.content.lower() in ['hit', 'stand']
+
     await ctx.send(message)
-    return await client.wait_for('message', check=lambda m: m.author == ctx.author and m.channel == ctx.channel)
+    try:
+        response = await client.wait_for('message', timeout=10.0, check=check)
+        return response.content.lower()
+    except asyncio.TimeoutError:
+        return 'timeout'
+    
 
 def determine_winner(player_hand, dealer_hand):
     player_total = sum(player_hand)
