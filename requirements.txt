@@ -2,4 +2,4 @@ discord.py
 youtube_dl
 requests
 pyancl
-#ffmpeg download from browser, make a folder in c: (only to make navigation easier) and move the three .exe files to that folder. Then, add the path to where the .exe files exist to path in system variables.
+twitchAPI
