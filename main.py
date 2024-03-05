@@ -30,37 +30,80 @@ async def get_access_token():
             data = await response.json()
             return data.get("access_token")
 
+
 async def fetch_release_dates(access_token):
     base_url = "https://api.igdb.com/v4"
-    endpoint = "/games"
-    fields = "name,genre,platforms,first_release_date;"
+    endpoint = "/release_dates"
     headers = {
         "Client-ID": client_id,
-        "Authorization": f"Bearer {access_token}"
+        "Authorization": f"Bearer {access_token}",
     }
-    url = base_url + endpoint 
-    today = datetime.utcnow().strftime('%Y-%m-%d')
-    data = {"fields": fields, "where": f"first_release_date = '{today}'"}
+    # Get today's date in the format required by IGDB
+    today_date = datetime.utcnow().strftime('%Y-%m-%d')
+    # Specify the fields and filter by today's date
+    data = {
+        "fields": "game",
+        "where": f"date = '{today_date}'",
+    }
     async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=data, headers=headers) as response:
-            games = await response.json()
-            return games
-            
+        async with session.post(f"{base_url}{endpoint}", headers=headers, json=data) as response:
+            if response.status == 200:
+                release_dates = await response.json()
+                game_ids = [release['game'] for release in release_dates if 'game' in release]
+                return game_ids
+            else:
+                raise Exception(f"Failed to fetch release dates: {response.status} - {response.reason}")
+
+
+
+
+async def fetch_games(access_token, game_ids):
+    base_url = "https://api.igdb.com/v4"
+    endpoint = "/games"
+    headers = {
+        "Client-ID": client_id,
+        "Authorization": f"Bearer {access_token}",
+    }
+    # Convert the list of game IDs into a comma-separated string
+    game_ids_str = ",".join(str(id) for id in game_ids)
+    # Specify the fields and filter by the game IDs
+    data = {
+        "fields": "name, genres, platforms",
+        "where": f"id = ({game_ids_str})",
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"{base_url}{endpoint}", headers=headers, json=data) as response:
+            if response.status == 200:
+                games_info = await response.json()
+                return games_info
+            else:
+                raise Exception(f"Failed to fetch games: {response.status} - {response.reason}")
 
 @client.command()
 async def releases(ctx):
     try:
         access_token = await get_access_token()
-        release_data = await fetch_release_dates(access_token)
-        await ctx.send(str(release_data))
-        if release_data:
-            game_info = "\n".join([f"{game['name']}" for game in release_data])
-            print(release_data)
-            await ctx.send(game_info)
+        # Fetch game IDs released today
+        game_ids = await fetch_release_dates(access_token)
+        if game_ids:
+            # Fetch detailed information about the games based on the IDs
+            games_info = await fetch_games(access_token, game_ids)
+            game_info = []
+            for game in games_info:
+                # Extract the desired fields from each game
+                name = game.get('name')
+                genres = ', '.join(game.get('genres', []))
+                platforms = ', '.join(game.get('platforms', []))
+                game_info.append(f"Name: {name}\nGenres: {genres}\nPlatforms: {platforms}\n")
+            # Send the formatted game information to the Discord channel
+            await ctx.send("\n".join(game_info))
         else:
             await ctx.send("No games released today.")
     except Exception as e:
         await ctx.send(f"Error occurred: {e}")
+
+
+
 
 
 @client.command()
