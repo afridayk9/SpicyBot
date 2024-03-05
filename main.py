@@ -54,9 +54,6 @@ async def fetch_release_dates(access_token):
             else:
                 raise Exception(f"Failed to fetch release dates: {response.status} - {response.reason}")
 
-
-
-
 async def fetch_games(access_token, game_ids):
     base_url = "https://api.igdb.com/v4"
     endpoint = "/games"
@@ -85,10 +82,11 @@ async def releases(ctx):
         access_token = await get_access_token()
         # Fetch game IDs released today
         game_ids = await fetch_release_dates(access_token)
+        await ctx.send(fetch_release_dates) #for debug purposes
         if game_ids:
             # Fetch detailed information about the games based on the IDs
             games_info = await fetch_games(access_token, game_ids)
-            game_info = []
+            game_info = []            
             for game in games_info:
                 # Extract the desired fields from each game
                 name = game.get('name')
