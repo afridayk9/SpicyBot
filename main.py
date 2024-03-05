@@ -45,14 +45,16 @@ async def fetch_release_dates(access_token):
         async with session.post(url, json=data, headers=headers) as response:
             games = await response.json()
             return games
+            
 
 @client.command()
 async def releases(ctx):
     try:
         access_token = await get_access_token()
         release_data = await fetch_release_dates(access_token)
+        await ctx.send(str(release_data))
         if release_data:
-            game_info = "\n".join([f"{game['name']} - Platforms: {game['platforms']}" for game in release_data])
+            game_info = "\n".join([f"{game['name']}" for game in release_data])
             print(release_data)
             await ctx.send(game_info)
         else:
