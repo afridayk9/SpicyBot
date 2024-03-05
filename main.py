@@ -33,26 +33,33 @@ async def get_access_token():
 async def fetch_release_dates(access_token):
     base_url = "https://api.igdb.com/v4"
     endpoint = "/games"
-    fields = "name,genre,platforms,first_release_date,;"
+    fields = "name,genre,platforms,first_release_date;"
     headers = {
         "Client-ID": client_id,
         "Authorization": f"Bearer {access_token}"
     }
-    url = base_url + endpoint
+    url = base_url + endpoint 
     today = datetime.utcnow().strftime('%Y-%m-%d')
-    data = {"fields": fields, "where": f"date = '{today}'"}
+    data = {"fields": fields, "where": f"first_release_date = '{today}'"}
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=data, headers=headers) as response:
-            return await response.json()
+            games = await response.json()
+            return games
 
 @client.command()
 async def releases(ctx):
     try:
         access_token = await get_access_token()
         release_data = await fetch_release_dates(access_token)
-        await ctx.send(release_data)
+        if release_data:
+            game_info = "\n".join([f"{game['name']} - Platforms: {game['platforms']}" for game in release_data])
+            print(release_data)
+            await ctx.send(game_info)
+        else:
+            await ctx.send("No games released today.")
     except Exception as e:
         await ctx.send(f"Error occurred: {e}")
+
 
 @client.command()
 async def hello(ctx):
