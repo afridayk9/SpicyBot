@@ -1,21 +1,59 @@
 import discord
 import random
 import asyncio
-from discord.ext import commands, tasks
-
-
-
+import requests
+import aiohttp
+import pytz
+from discord.ext import commands
+from datetime import datetime
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-
-
+client_id = "uhxflhcvb06gqws8hb8yczuowmi0fb"
+client_secret = "ozt8nao0bsr3rujvkl2ke6tvp8x0ce"
 
 @client.event
 async def on_ready():
     print("Spicy bot is ready for use")
     print("--------------------------")
 
+
 #Anthony Friday
+async def get_access_token():
+    token_url = "https://id.twitch.tv/oauth2/token"
+    params = {
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "grant_type": "client_credentials"
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(token_url, params=params) as response:
+            data = await response.json()
+            return data.get("access_token")
+
+async def fetch_release_dates(access_token):
+    base_url = "https://api.igdb.com/v4"
+    endpoint = "/games"
+    fields = "name,genre,platforms,first_release_date,;"
+    headers = {
+        "Client-ID": client_id,
+        "Authorization": f"Bearer {access_token}"
+    }
+    url = base_url + endpoint
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    data = {"fields": fields, "where": f"date = '{today}'"}
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=data, headers=headers) as response:
+            return await response.json()
+
+@client.command()
+async def releases(ctx):
+    try:
+        access_token = await get_access_token()
+        release_data = await fetch_release_dates(access_token)
+        await ctx.send(release_data)
+    except Exception as e:
+        await ctx.send(f"Error occurred: {e}")
+
 @client.command()
 async def hello(ctx):
     await ctx.send("Hello, I am Spicy Bot!")
