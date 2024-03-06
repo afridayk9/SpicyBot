@@ -185,7 +185,31 @@ def determine_winner(player_hand, dealer_hand):
         return 'player'
     else:
         return 'dealer'
-       
+    
+@client.command(name='8ball', help='Ask the magic 8-ball a question.')
+async def magic_8_ball(ctx, *, question):
+    responses = [
+        "Yes, because the universe revolves around you.",
+        "No, and you should've seen that coming.",
+        "Ask again later, or don't.",
+        "Cannot predict now, but I predict your confusion will continue.",
+        "Don't count on it, but feel free to blame the 8-ball for your problems.",
+        "Maybe",
+        "Definitely! Just kidding, I have no idea.",
+        "No chance."
+    ]
+
+    response = random.choice(responses)
+    await ctx.send(f'Magic 8-ball says: {response}')
+
+    try:
+        def check(m):
+            return m.author == ctx.author and m.channel == ctx.channel
+
+        await client.wait_for('message', timeout=10.0, check=check)
+    except asyncio.TimeoutError:
+        await ctx.send("Time's up! You didn't ask another question in time.")
+
 
 
 #Douglas Perry
