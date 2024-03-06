@@ -32,6 +32,7 @@ async def get_access_token():
 
 
 async def fetch_release_dates(access_token):
+    print("inside fetch release date")
     base_url = "https://api.igdb.com/v4"
     endpoint = "/release_dates"
     headers = {
@@ -40,21 +41,28 @@ async def fetch_release_dates(access_token):
     }
     # Get today's date in the format required by IGDB
     today_date = datetime.utcnow().strftime('%Y-%m-%d')
+    print("todays date:", today_date)
     # Specify the fields and filter by today's date
     data = {
         "fields": "game",
         "where": f"date = '{today_date}'",
-    }
+    }    
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{base_url}{endpoint}", headers=headers, json=data) as response:
+            print("inside fetch release date post request")
             if response.status == 200:
                 release_dates = await response.json()
-                game_ids = [release['game'] for release in release_dates if 'game' in release]
+                print("Release Dates:",release_dates)
+                for release in release_dates:
+                    print("Keys in release:", release.keys())                
+                game_ids = [release['game'] for release in release_dates if 'game' in release]                
+                print("Game Ids", game_ids)
                 return game_ids
             else:
                 raise Exception(f"Failed to fetch release dates: {response.status} - {response.reason}")
 
 async def fetch_games(access_token, game_ids):
+    print("made it inside fetch_games")
     base_url = "https://api.igdb.com/v4"
     endpoint = "/games"
     headers = {
@@ -69,20 +77,28 @@ async def fetch_games(access_token, game_ids):
         "where": f"id = ({game_ids_str})",
     }
     async with aiohttp.ClientSession() as session:
+        print("made it to aiohttp client session")
         async with session.post(f"{base_url}{endpoint}", headers=headers, json=data) as response:
-            if response.status == 200:
+            print("made it to post request")
+            try:
+                response.raise_for_status()  # Check for HTTP errors
                 games_info = await response.json()
+                print(response)  # Check the response object
                 return games_info
-            else:
-                raise Exception(f"Failed to fetch games: {response.status} - {response.reason}")
+            except aiohttp.ClientResponseError as e:
+                print(f"HTTP error occurred: {e.status} - {e.message}")
+                raise
+            except Exception as e:
+                print(f"Error occurred: {e}")
+                raise
 
 @client.command()
 async def releases(ctx):
-    try:
+    try:        
         access_token = await get_access_token()
         # Fetch game IDs released today
         game_ids = await fetch_release_dates(access_token)
-        await ctx.send(fetch_release_dates) #for debug purposes
+        await ctx.send(await fetch_release_dates(access_token)) #for debug purposes
         if game_ids:
             # Fetch detailed information about the games based on the IDs
             games_info = await fetch_games(access_token, game_ids)
