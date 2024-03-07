@@ -4,8 +4,9 @@ import asyncio
 import requests
 import aiohttp
 import pytz
+import datetime
 from discord.ext import commands
-from datetime import datetime
+
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 client_id = "uhxflhcvb06gqws8hb8yczuowmi0fb"
@@ -31,7 +32,7 @@ async def get_access_token():
             return data.get("access_token")
 
 
-async def fetch_release_dates(access_token):
+async def fetch_todays_releases(access_token):
     print("inside fetch release date")
     base_url = "https://api.igdb.com/v4"
     endpoint = "/release_dates"
@@ -40,24 +41,34 @@ async def fetch_release_dates(access_token):
         "Authorization": f"Bearer {access_token}",
     }
     # Get today's date in the format required by IGDB
-    today_date = datetime.utcnow().strftime('%Y-%m-%d')
-    print("todays date:", today_date)
-    # Specify the fields and filter by today's date
+    current_date = datetime.datetime.now(datetime.timezone.utc).date()
+    day_start = int(datetime.datetime.combine(current_date, datetime.time.min).timestamp())
+    print("Day Start: ", day_start)
+    day_end = int(datetime.datetime.combine(current_date, datetime.time.max).timestamp())
+    print("Day End: ", day_end)
+    
     data = {
-        "fields": "game",
-        "where": f"date = '{today_date}'",
-    }    
+    "fields": "date, game",
+    "where": f"date >= {day_start} & date <= {day_end}"
+}  
+    
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{base_url}{endpoint}", headers=headers, json=data) as response:
+            #print("Reponse", response)
             print("inside fetch release date post request")
             if response.status == 200:
-                release_dates = await response.json()
-                print("Release Dates:",release_dates)
-                for release in release_dates:
-                    print("Keys in release:", release.keys())                
-                game_ids = [release['game'] for release in release_dates if 'game' in release]                
+                todays_releases = await response.json()
+                print("Todays releases: ", todays_releases)
+                game_ids = []
+                date = []
+                for release in todays_releases:
+                    #release_date_timestamp = release.get("date")  
+                    #if day_start <= release_date_timestamp <= day_end:
+                    date.append(release['date'])
+                    game_ids.append(release['game'])                        
+                print("Release Dates: ", date)
                 print("Game Ids", game_ids)
-                return game_ids
+                return game_ids, date
             else:
                 raise Exception(f"Failed to fetch release dates: {response.status} - {response.reason}")
 
@@ -97,8 +108,8 @@ async def releases(ctx):
     try:        
         access_token = await get_access_token()
         # Fetch game IDs released today
-        game_ids = await fetch_release_dates(access_token)
-        await ctx.send(await fetch_release_dates(access_token)) #for debug purposes
+        game_ids = await fetch_todays_releases(access_token)
+        await ctx.send(await fetch_todays_releases(access_token)) #for debug purposes
         if game_ids:
             # Fetch detailed information about the games based on the IDs
             games_info = await fetch_games(access_token, game_ids)
@@ -115,10 +126,6 @@ async def releases(ctx):
             await ctx.send("No games released today.")
     except Exception as e:
         await ctx.send(f"Error occurred: {e}")
-
-
-
-
 
 @client.command()
 async def hello(ctx):
