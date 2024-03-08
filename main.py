@@ -1,9 +1,6 @@
 import discord
 import random
 import asyncio
-import requests
-import aiohttp
-import pytz
 import datetime
 import json
 from discord.ext import commands
@@ -137,6 +134,8 @@ async def fetch_games():
 
     return games_info
 
+#https://api-docs.igdb.com/#getting-started
+#https://github.com/twitchtv/igdb-api-python
 
 @client.command()
 async def releases(ctx):
