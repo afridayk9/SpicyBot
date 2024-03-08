@@ -10,9 +10,13 @@ from requests import post
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
-client_id = "uhxflhcvb06gqws8hb8yczuowmi0fb"
-client_secret = "ozt8nao0bsr3rujvkl2ke6tvp8x0ce"
 base_url = "https://api.igdb.com/v4"
+
+with open("client_id.txt") as file:
+    client_id = file.read()
+
+with open("client_secret.txt") as file:
+    client_secret = file.read()
 
 @client.event
 async def on_ready():
