@@ -6,11 +6,15 @@ import aiohttp
 import pytz
 import datetime
 from discord.ext import commands
+from igdb.wrapper import IGDBWrapper
+from requests import post
+
 
 
 client = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 client_id = "uhxflhcvb06gqws8hb8yczuowmi0fb"
 client_secret = "ozt8nao0bsr3rujvkl2ke6tvp8x0ce"
+base_url = "https://api.igdb.com/v4"
 
 @client.event
 async def on_ready():
@@ -18,101 +22,81 @@ async def on_ready():
     print("--------------------------")
 
 
+
 #Anthony Friday
 async def get_access_token():
-    token_url = "https://id.twitch.tv/oauth2/token"
-    params = {
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "grant_type": "client_credentials"
-    }
-    async with aiohttp.ClientSession() as session:
-        async with session.post(token_url, params=params) as response:
-            data = await response.json()
-            return data.get("access_token")
+    access_token_url = post (f"https://id.twitch.tv/oauth2/token?client_id={client_id}&client_secret={client_secret}&grant_type=client_credentials")
+    #print ("access token: %s" % str(access_token_url.json()))
+    access_token = access_token_url.json().get('access_token')
+    return access_token
 
-
-async def fetch_todays_releases(access_token):
-    print("inside fetch release date")
-    base_url = "https://api.igdb.com/v4"
-    endpoint = "/release_dates"
+async def fetch_todays_releases():    
+    access_token = await get_access_token()      
     headers = {
-        "Client-ID": client_id,
-        "Authorization": f"Bearer {access_token}",
+        'Client-ID': client_id,
+        'Authorization': f'Bearer {access_token}',
     }
     # Get today's date in the format required by IGDB
     current_date = datetime.datetime.now(datetime.timezone.utc).date()
     day_start = int(datetime.datetime.combine(current_date, datetime.time.min).timestamp())
     print("Day Start: ", day_start)
     day_end = int(datetime.datetime.combine(current_date, datetime.time.max).timestamp())
-    print("Day End: ", day_end)
-    
-    data = {
-    "fields": "date, game",
-    "where": f"date >= {day_start} & date <= {day_end}"
-}  
+    print("Day End: ", day_end)       
     
     async with aiohttp.ClientSession() as session:
-        async with session.post(f"{base_url}{endpoint}", headers=headers, json=data) as response:
-            #print("Reponse", response)
-            print("inside fetch release date post request")
+        print("fetch releases client session")
+        async with session.post(f'{base_url}/release_dates', **{'headers': headers, 'data': 'fields date,game;'}) as response:
+            #print("fetch response :", response)
             if response.status == 200:
                 todays_releases = await response.json()
-                print("Todays releases: ", todays_releases)
-                game_ids = []
-                date = []
-                for release in todays_releases:
-                    #release_date_timestamp = release.get("date")  
-                    #if day_start <= release_date_timestamp <= day_end:
-                    date.append(release['date'])
-                    game_ids.append(release['game'])                        
-                print("Release Dates: ", date)
-                print("Game Ids", game_ids)
-                return game_ids, date
+                print("today's releases:", todays_releases)
+                return todays_releases
             else:
                 raise Exception(f"Failed to fetch release dates: {response.status} - {response.reason}")
 
-async def fetch_games(access_token, game_ids):
-    print("made it inside fetch_games")
-    base_url = "https://api.igdb.com/v4"
-    endpoint = "/games"
+async def fetch_games():
+    print("made it inside fetch_games")    
+    access_token = await get_access_token()    
     headers = {
         "Client-ID": client_id,
         "Authorization": f"Bearer {access_token}",
     }
-    # Convert the list of game IDs into a comma-separated string
-    game_ids_str = ",".join(str(id) for id in game_ids)
-    # Specify the fields and filter by the game IDs
-    data = {
-        "fields": "name, genres, platforms",
-        "where": f"id = ({game_ids_str})",
-    }
-    async with aiohttp.ClientSession() as session:
-        print("made it to aiohttp client session")
-        async with session.post(f"{base_url}{endpoint}", headers=headers, json=data) as response:
-            print("made it to post request")
-            try:
-                response.raise_for_status()  # Check for HTTP errors
-                games_info = await response.json()
-                print(response)  # Check the response object
-                return games_info
-            except aiohttp.ClientResponseError as e:
-                print(f"HTTP error occurred: {e.status} - {e.message}")
-                raise
-            except Exception as e:
-                print(f"Error occurred: {e}")
-                raise
+
+    todays_releases = await fetch_todays_releases()
+    todays_games = []
+
+    for games in todays_releases:
+        game_id = games.get('game')
+        todays_games.append(game_id)
+    
+    print("todays game list:", todays_games)
+
+    for game_info in todays_games:
+        
+        async with aiohttp.ClientSession() as session:
+            print("fetch game aiohttp client session")
+            async with session.post(f"{base_url}/games", **{'headers' : headers, 'data': f'fields name, genres, platforms; where id={game_info}'}) as response:
+
+                if response.status == 200:
+                    games = await response.json()
+                    print("games: ", games)
+                    return games
+                else:
+                    raise Exception(f"Failed to fetch games:  {response.status} - {response.reason} ")
+    else:
+        print("No Releases for today.")
+
 
 @client.command()
 async def releases(ctx):
     try:        
         access_token = await get_access_token()
         # Fetch game IDs released today
-        game_ids = await fetch_todays_releases(access_token)
-        await ctx.send(await fetch_todays_releases(access_token)) #for debug purposes
+        game_ids = await fetch_todays_releases()
+        #await ctx.send(await fetch_todays_releases()) #for debug purposes
         if game_ids:
             # Fetch detailed information about the games based on the IDs
-            games_info = await fetch_games(access_token, game_ids)
+            games_info = await fetch_games()
             game_info = []            
             for game in games_info:
                 # Extract the desired fields from each game
