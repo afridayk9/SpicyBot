@@ -225,7 +225,7 @@ async def scramble(word):
     return ''.join(random.sample(word, len(word)))
 
 @client.command()
-async def scramblegame(ctx):
+async def scramble(ctx):
     with open("randomwords.txt", "r", encoding="utf-8") as file:
        word = file.readlines()
     
