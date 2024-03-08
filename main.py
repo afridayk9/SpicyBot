@@ -32,15 +32,15 @@ async def get_access_token():
     return access_token
 
 async def fetch_todays_releases():
-    print("inside fetch_todays_releases")    
+    #print("inside fetch_todays_releases")    
     access_token= await get_access_token()
     wrapper = IGDBWrapper(client_id, access_token)
 
     current_date = datetime.datetime.now(datetime.timezone.utc).date()
     day_start = int(datetime.datetime.combine(current_date, datetime.time.min).timestamp())
     day_end = int(datetime.datetime.combine(current_date, datetime.time.max).timestamp())
-    print("day_start:", day_start)
-    print("day_end:", day_end)
+    #print("day_start:", day_start)
+    #print("day_end:", day_end)
 
 
     todays_releases = wrapper.api_request(
@@ -50,24 +50,56 @@ async def fetch_todays_releases():
 
     response_str = todays_releases.decode('utf-8')
     response_json = json.loads(response_str)
-    print("return from fetch_release_dates: ", response_json)
+    #print("return from fetch_release_dates: ", response_json)
+    return response_json
+
+async def fetch_genres(id):
+    #print("inside fetch_genres")
+    access_token = await get_access_token()
+    wrapper = IGDBWrapper(client_id, access_token)
+
+    genres = wrapper.api_request(
+        'genres',
+        f'fields name; where id={id}'
+    )
+
+    response_str = genres.decode('utf-8')
+    response_json = json.loads(response_str)
+    #print("return from fetch_genres: ", response_json)
+    return response_json
+
+#use the id of the platform retrieved from fetch_games to determine the platform name
+async def fetch_platforms(id):
+    #print("inside fetch_platforms")
+    access_token = await get_access_token()
+    wrapper = IGDBWrapper(client_id, access_token)
+
+    platforms = wrapper.api_request(
+        'platforms',
+        f'fields name; where id={id}'
+    )
+
+    response_str = platforms.decode('utf-8')
+    response_json = json.loads(response_str)
+    #print("return from fetch_platforms: ", response_json)
     return response_json
 
 
+
 async def fetch_games():
-    print("inside fetch_games")
+    #print("inside fetch_games")
     access_token = await get_access_token()
     wrapper = IGDBWrapper(client_id, access_token)
 
     todays_releases = await fetch_todays_releases()
     todays_games = []
-    print("todays releases", todays_releases)
+    #print("todays releases", todays_releases)
     
     
     for release in todays_releases:
         game_id = release.get('game')
         todays_games.append(game_id)
-    print("todays games:", todays_games)
+    #print("todays games:", todays_games)
     
     
     games_info = []
@@ -76,12 +108,30 @@ async def fetch_games():
             'games',
             f'fields name, genres, platforms; where id={game_id};'
         )
-
         # Decode the byte array response into a string
         response_str = byte_array.decode('utf-8')
-
         # Parse the string into JSON
         response_json = json.loads(response_str)
+
+        for game in response_json:
+            for i, genre_id in enumerate(game['genres']):
+                genre_array = wrapper.api_request(
+                    'genres',
+                    f'fields name; where id={genre_id};'
+                )
+                genre_str = genre_array.decode('utf-8')
+                genre_json = json.loads(genre_str)
+                game['genres'][i] = genre_json[0]['name']
+
+        for game in response_json:
+            for i, platform_id in enumerate(game['platforms']):
+                platform_array = wrapper.api_request(
+                    'platforms',
+                    f'fields name; where id={platform_id};'
+                )
+                platform_str = platform_array.decode('utf-8')
+                platform_json = json.loads(platform_str)
+                game['platforms'][i] = platform_json[0]['name']
 
         games_info.append(response_json)
 
