@@ -260,7 +260,7 @@ async def magic_8_ball(ctx, *, question):
 
 #Douglas Perry
 
-async def scramble(word):
+async def scrambler(word):
     return ''.join(random.sample(word, len(word)))
 
 @client.command()
@@ -269,7 +269,7 @@ async def scramble(ctx):
        word = file.readlines()
     
     random_word = random.choice(word).strip()
-    scrambled_word = await scramble(random_word)
+    scrambled_word = await scrambler(random_word)
     embed = discord.Embed(title="Guess the Word!", description = f"Scrambled word: {scrambled_word}")
     embed.set_footer(text="Time Limit: 10 Seconds")
     await ctx.send (embed=embed)
@@ -288,6 +288,7 @@ async def scramble(ctx):
 
     except asyncio.TimeoutError:
         await ctx.send("Time's up! You didn't guess the word in time. The word was: " + random_word)
+
 
 
 with open("token.txt") as file:
