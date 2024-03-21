@@ -40,8 +40,7 @@ async def fetch_todays_releases():
     current_date = datetime.datetime.now(datetime.timezone.utc).date()
     day_start = int(datetime.datetime.combine(current_date, datetime.time(hour=0,minute=0,second=0)).timestamp())
     tomorrow = current_date + datetime.timedelta(days=1)
-    day_end = int(datetime.datetime.combine(tomorrow, datetime.time()).timestamp())
-    print("current_date:", current_date)
+    day_end = int(datetime.datetime.combine(tomorrow, datetime.time.max).timestamp())
     print("day_start:", day_start)
     print("day_end:", day_end)
 
@@ -96,7 +95,8 @@ async def fetch_games():
 
     todays_releases = await fetch_todays_releases()
     todays_games = []
-    print("todays releases", todays_releases)    
+    print("todays releases", todays_releases)
+    
     
     for release in todays_releases:
         game_id = release.get('game')
@@ -135,7 +135,6 @@ async def fetch_games():
                 platform_json = json.loads(platform_str)
                 game['platforms'][i] = platform_json[0]['name']
 
-        
         games_info.append(response_json)
 
     return games_info
@@ -148,7 +147,7 @@ async def releases(ctx):
     games_info = await fetch_games()
     for game in games_info:
         game_dict = game[0] 
-        await ctx.send(f"Title: {game_dict['name']}\n Genres: {game_dict['genres']}\n Platforms: {game_dict['platforms']}\n -------------------------\n")
+        await ctx.send(f"Title: {game_dict['name']}\n Genres: {game_dict['genres']}\n Platforms: {game_dict['platforms']}\n *******************************\n")
     
 
 @client.command()
@@ -257,9 +256,9 @@ async def magic_8_ball(ctx, *, question):
     except asyncio.TimeoutError:
         await ctx.send("Time's up! You didn't ask another question in time.")
 
-
-
 #Douglas Perry
+
+user_points = {}
 
 async def scrambler(word):
     return ''.join(random.sample(word, len(word)))
@@ -268,12 +267,17 @@ async def scrambler(word):
 async def scramble(ctx):
     with open("randomwords.txt", "r", encoding="utf-8") as file:
        word = file.readlines()
-    
+
+    user_id = ctx.author.id
+    if user_id not in user_points:
+        user_points[user_id] = 0
+
     random_word = random.choice(word).strip()
     scrambled_word = await scrambler(random_word)
     embed = discord.Embed(title="Guess the Word!", description = f"Scrambled word: {scrambled_word}")
     embed.set_footer(text="Time Limit: 10 Seconds")
     await ctx.send (embed=embed)
+
 
     try:
         def check(msg):
@@ -283,18 +287,27 @@ async def scramble(ctx):
         guess = guess.content.lower()
 
         if guess == random_word.lower():
-            await ctx.send("Correct! You guessed the word in time.")
+            user_points[user_id] += 1
+            await ctx.send(f"Correct! You guessed the word in time. You have {user_points[user_id]} point(s)")
         else:
-            await ctx.send("Wrong Guess! The word was: " + random_word)
+            if user_points[user_id] > 0:
+                user_points[user_id] -= 1
+            await ctx.send(f"Wrong Guess! The word was: {random_word}. You have {user_points[user_id]} point(s)")
 
     except asyncio.TimeoutError:
-        await ctx.send("Time's up! You didn't guess the word in time. The word was: " + random_word)
+        if user_points[user_id] > 0:
+            user_points[user_id] -= 1
+        await ctx.send(f"Time's up! You didn't guess the word in time, the word was: {random_word}. You have {user_points[user_id]} point(s)")
 
-
+@client.command()
+async def points(ctx, member: discord.Member = None):
+    if member is None:
+            member = ctx.author
+    if member.id not in user_points:
+        user_points[member.id] = 0
+    await ctx.send(f"{member.name} has {user_points[member.id]} point(s)")
 
 with open("token.txt") as file:
     token = file.read()
-
+    
 client.run(token)
-
-
