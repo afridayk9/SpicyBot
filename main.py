@@ -40,7 +40,8 @@ async def fetch_todays_releases():
     current_date = datetime.datetime.now(datetime.timezone.utc).date()
     day_start = int(datetime.datetime.combine(current_date, datetime.time(hour=0,minute=0,second=0)).timestamp())
     tomorrow = current_date + datetime.timedelta(days=1)
-    day_end = int(datetime.datetime.combine(tomorrow, datetime.time.max).timestamp())
+    day_end = int(datetime.datetime.combine(tomorrow, datetime.time()).timestamp())
+    print("current_date:", current_date)
     print("day_start:", day_start)
     print("day_end:", day_end)
 
@@ -95,8 +96,7 @@ async def fetch_games():
 
     todays_releases = await fetch_todays_releases()
     todays_games = []
-    print("todays releases", todays_releases)
-    
+    print("todays releases", todays_releases)    
     
     for release in todays_releases:
         game_id = release.get('game')
@@ -135,6 +135,7 @@ async def fetch_games():
                 platform_json = json.loads(platform_str)
                 game['platforms'][i] = platform_json[0]['name']
 
+        
         games_info.append(response_json)
 
     return games_info
@@ -147,7 +148,7 @@ async def releases(ctx):
     games_info = await fetch_games()
     for game in games_info:
         game_dict = game[0] 
-        await ctx.send(f"Title: {game_dict['name']}\n Genres: {game_dict['genres']}\n Platforms: {game_dict['platforms']}\n *******************************\n")
+        await ctx.send(f"Title: {game_dict['name']}\n Genres: {game_dict['genres']}\n Platforms: {game_dict['platforms']}\n -------------------------\n")
     
 
 @client.command()
